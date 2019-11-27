@@ -7,8 +7,15 @@
           <hospital-box-icon/>
           <b>FLGOS</b>
         </h3>
-        <router-link to="/login" tag="button" >
-          <md-button>
+
+        <router-link  v-if="$auth.check()" to="/dashboard" tag="button" >
+          <md-button >
+            <b>Menu</b>
+          </md-button>
+        </router-link>
+
+        <router-link  v-if="!$auth.check()" to="/login" tag="button" >
+          <md-button >
             <b>Ingresar</b>
           </md-button>
         </router-link>
@@ -16,7 +23,7 @@
 
     </div>
 
-</template>
+</template> 
 
 
 <script>

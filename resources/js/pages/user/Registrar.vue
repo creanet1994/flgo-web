@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div ref="formContainer">
       	<md-toolbar md-elevation="1" style="background-color: #fff" >
         	<h6 class="md-title" style="flex: 1; color: #001A48;">
           		<hospital-box-icon/>
@@ -116,6 +116,10 @@
 			                <span class="md-helper-text">Referente a fonoaudiología</span>
 			                <span class="md-error" v-if="inputDIActive">{{msjErrorDi}}</span>
 			            </md-field>
+				    </div>
+
+				    <div class="col-12 d-flex justify-content-end">
+				    	<small class="md-helper-text">Ingrese primero el rut para buscar en nuestros registros</small>
 				    </div>
 
 			  	</div>
@@ -382,9 +386,12 @@
 
 				  		<div class="col-12 col-sm-4">
 			              <md-field>
-			              	<md-icon>airline_seat_recline_normal</md-icon>
-			                <label for="vee">Via enteral</label>
-			                <md-input v-model="viaEnteralAlta"/>
+			          		<label for="inputVe">Via enteral</label>
+				          	<md-select v-model="viaEnteralAlta" name="viaEnteralAlta" id="viaEnteralAlta">
+				          		<md-option v-for="(item, index) in sino" :key="index" :value="item.value">
+				          			{{item.label}}
+				          		</md-option>
+				          	</md-select>
 			              </md-field>
 				  		</div>
 
@@ -413,6 +420,7 @@
 			  	</div>
 			</div>	
 		</div>
+
 	</div>
 
 </template>
@@ -425,6 +433,10 @@
 	import 'vue-material/dist/vue-material.min.css'
 	import 'vue-material/dist/theme/default.css'
 	import { mapActions, mapState, mapMutations } from 'vuex';
+    import parse from 'date-fns/parse';
+	import format from 'date-fns/format';
+	import isValid from 'date-fns/isValid';
+
 
 	Vue.use(MdButton)
 	Vue.use(MdContent)
@@ -582,12 +594,14 @@
 				inputProcedimientoActive:[],
 				msjErrorProcedimiento:[],
 
+				inputSalida:[],
+
 		// -------------- Datos del paciente --------------------------
 
 				inputRut:null,
 				inputName:null,
 				inputProcedencia: null,
-				fechaIngreso:new Date(),
+				fechaIngreso:format(new Date(), 'yyyy-MM-dd'),
 				age:null,
 				inputGS:null,
 				inputSexo:null,
@@ -614,10 +628,14 @@
 				escalaEgreso:[],
 
 		// -------------- Alta fonoaudiologica ------------------------
-				fechaAlta: new Date(),
+				fechaAlta:null,
 				viaEnteralAlta: null,
 				derivacion: null,
 
+		//-------------------------------------------------------------
+
+				rutExist:false,
+				idPatient:null,
 
 			};
 		},
@@ -681,6 +699,7 @@
 					case 'inputDI':
 						this.inputDIActive = false;
 					  	break;
+
 
 					case 'inputDfi':
 						this.inputDfiActive[0] = false;
@@ -845,16 +864,105 @@
 				}
 
 				this.inputRut = value;
+				this.buscarInfoRut(this.inputRut);
 			},
 
+// ************************* Buscar info de rut **************************************
+			
+			buscarInfoRut(rut){
+                let loader = this.$loading.show({
+                    // Optional parameters
+                    container: this.$refs.formContainer,
+                    canCancel: true,
+                    onCancel: this.onCancel,
+                    color: '#19493F',
+                });
+
+				axios.get('/auth/registro/inforut', {
+				    params: {
+				      rut: rut
+				    }
+				}).then(response => {
+					
+					if (response.data.validacion){
+						this.rutExist = true;
+						this.formateoInputs(response.data.data, response.data.evolucion, response.data.antecedente, response.data.egresos, response.data.altaMedica)
+					}else{
+						this.rutExist = false;
+					}
+					
+					loader.hide();
+				}).catch(e => {
+				    console.log(e);
+				})
+			},
+
+			formateoInputs(data, evolucion, antecedentes, egresos, altaMedica){
+				console.log('Este es el data: ', data)
+				
+				this.inputName=data.name;
+				this.inputProcedencia=data.procedencia;
+				this.fechaIngreso= format(new Date(data.fechaIngreso), 'yyyy-MM-dd');
+				this.age=data.age;
+				this.inputGS=data.grupo_sangre;
+				this.inputSexo=data.sexo;
+				this.inputTqt=data.tqt;
+				this.inputDI=data.dgcoIngreso;
+				this.idPatient=data.id;
+
+				console.log('Este es el id: ', this.idPatient)
+
+				this.antecedentes = [];
+				for (var i = 0; i < antecedentes.length; i++){
+					this.inputDfi[i]=antecedentes[i].dgflgoing;
+					this.severidadIngreso[i]=antecedentes[i].severidad;
+					this.escalaIngreso[i]=antecedentes[i].escala;
+					this.antecedentes.push(1);
+				}
+
+
+				this.inputCfv=evolucion.cfv;
+				this.inputVe=evolucion.via_enteral;
+				this.inputVfc=evolucion.vfc;
+
+				this.itemManejo=[];
+				if (evolucion.manejo_flgo1) {this.inputManejo[0]=evolucion.manejo_flgo1;this.itemManejo.push(1);}
+				if (evolucion.manejo_flgo2) {this.inputManejo[1]=evolucion.manejo_flgo2;this.itemManejo.push(1);}
+				if (evolucion.manejo_flgo3) {this.inputManejo[2]=evolucion.manejo_flgo3;this.itemManejo.push(1);}
+				if (evolucion.manejo_flgo4) {this.inputManejo[3]=evolucion.manejo_flgo4;this.itemManejo.push(1);}
+
+				this.itemProcedimiento=[];
+				if (evolucion.procedimiento1) {this.inputProcedimiento[0]=evolucion.procedimiento1;this.itemProcedimiento.push(1);}
+				if (evolucion.procedimiento2) {this.inputProcedimiento[1]=evolucion.procedimiento2;this.itemProcedimiento.push(1);}
+				if (evolucion.procedimiento3) {this.inputProcedimiento[2]=evolucion.procedimiento3;this.itemProcedimiento.push(1);}
+				if (evolucion.procedimiento4) {this.inputProcedimiento[3]=evolucion.procedimiento4;this.itemProcedimiento.push(1);}
+				
+				if (egresos) {
+					console.log('Egresos');
+					this.antecedentesEgreso = [];
+					for (var i = 0; i < egresos.length; i++){
+						this.inputDfe[i]=egresos[i].dgflgoing;
+						this.severidadEgreso[i]=egresos[i].severidad;
+						this.escalaEgreso[i]=egresos[i].escala;
+						this.antecedentesEgreso.push(1);
+					}
+				}
+
+				if (altaMedica.length>0) {
+					console.log('Alta Medica', altaMedica);
+					this.fechaAlta=new Date(altaMedica.fecha_alta_flgo);
+					this.viaEnteralAlta=altaMedica.via_enteral;
+					this.derivacion=altaMedica.derivacion;
+				}
+			},
 // ************************* Funciones de registro **************************************
 
 			agregarRegistro(){
 
-				
+				console.log('Desde agregarRegistro')
 
 				var error=false;
-
+				
 				if (!this.inputRut) {
 					error = true;
 					this.inputRutActive = true;
@@ -935,63 +1043,107 @@
 					this.inputProcedimientoActive[0] = true;
 					this.msjErrorProcedimiento[0] = 'El ingreso del  dato es obligatorio';
 				}
+
+
 				if (!error){
+
+                    let loader = this.$loading.show({
+                        // Optional parameters
+                        container: this.$refs.formContainer,
+                        canCancel: true,
+                        onCancel: this.onCancel,
+                        color: '#19493F',
+                    });
+
+                    var altaExist;
+
+                    if (this.viaEnteralAlta) {
+                    	altaExist= true;
+                    }else{
+                    	altaExist= false;
+                    }
+
 					var registro = [];
 
+					if (this.rutExist) {
+						registro.push(
 
-		// -------------- Antecedentes fonoaudiologico ----------------
+							{profesional: this.profesional},
+							{rutExist: true},
+							{idPatient: this.idPatient},
 
+							{dfi:this.inputDfi},
+							{si:this.severidadIngreso},
+							{ei:this.escalaIngreso},
 
+							{cfv:this.inputCfv},
+							{ve:this.inputVe},
+							{vfc:this.inputVfc},
+							{manejo:this.inputManejo},
+							{procedimiento:this.inputProcedimiento},
 
-		// -------------- Evolución fonoaudiologico -------------------
+							{dfe:this.inputDfe},
+							{se:this.severidadEgreso},
+							{ee:this.escalaEgreso},
 
+							{altaExist: altaExist},
 
-		// -------------- Egreso fonoaudiologico ----------------------
+							{fecha_alta:format(new Date(this.fechaAlta), 'yyyy-MM-dd')},
+							{vea:this.viaEnteralAlta},
+							{derivacion:this.derivacion}
+						
+						)
+					}else{
 
+						registro.push(
+							{rutExist: false},
+							{profesional: this.profesional},
+							{rut: this.inputRut},
+							{nombre: this.inputName},
+							{procedencia:this.inputProcedencia},
+							{fecha_ingreso:this.fechaIngreso},
+							{edad: this.age},
+							{grupo_sangre:this.inputGS},
+							{sexo:this.inputSexo},
+							{tqt:this.inputTqt},
+							{diagnostico_ingreso:this.inputDI},
 
-		// -------------- Alta fonoaudiologica ------------------------
+							{dfi:this.inputDfi},
+							{si:this.severidadIngreso},
+							{ei:this.escalaIngreso},
 
+							{cfv:this.inputCfv},
+							{ve:this.inputVe},
+							{vfc:this.inputVfc},
+							{manejo:this.inputManejo},
+							{procedimiento:this.inputProcedimiento},
 
-					registro.push({
-						profesional: this.profesional,
-						rut: this.inputRut,
-						nombre: this.inputName,
-						procedencia:this.inputProcedencia,
-						fecha_ingreso:this.fechaIngreso,
-						edad: this.age,
-						grupo_sangre:this.inputGS,
-						sexo:this.inputSexo,
-						tqt:this.inputTqt,
-						diagnostico_ingreso:this.inputDI,
+							{dfe:this.inputDfe},
+							{se:this.severidadEgreso},
+							{ee:this.escalaEgreso},
 
-						dfi:this.inputDfi,
-						si:this.severidadIngreso,
-						ei:this.escalaIngreso,
+							{altaExist: altaExist},
 
-						cfv:this.inputCfv,
-						ve:this.inputVe,
-						vfc:this.inputVfc,
-						manejo:this.inputManejo,
-						procedimiento:this.inputProcedimiento,
+							{fecha_alta:format(new Date(this.fechaAlta), 'yyyy-MM-dd')},
+							{vea:this.viaEnteralAlta},
+							{derivacion:this.derivacion}
+						
+						)
+					}
 
-						dfe:this.inputDfe,
-						se:this.severidadEgreso,
-						ee:this.escalaEgreso,
-
-						fecha_alta:this.fechaAlta,
-						vea:this.viaEnteralAlta,
-						derivacion:this.derivacion
-					
-					})
+					console.log('El registro es: ',registro)
 
                     axios.post('/auth/registro/create', {
                         data: JSON.stringify(registro),
                     })
-                    .then(function (response) {
-                        console.log(response)                        
+                    .then(function (response){
+                        console.log(response)
+                        //window.location="/dashboard";
+                        loader.hide();
                     })
-                    .catch(function (error) {
-                        console.log(error)
+                    .catch(function (error){
+                        console.log(error);
+                        loader.hide();
                     });
 
 					console.log('El profesional: ', this.profesional);

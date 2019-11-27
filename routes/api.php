@@ -29,7 +29,10 @@ Route::prefix('auth')->group(function () {
         Route::get('user', 'AuthController@user');
         // Agregar registro
         Route::post('registro/create', 'RegisterController@store');
+        // Agregar registro
+        Route::get('registro/inforut', 'RegisterController@infoRut');
         // Logout user from application
         Route::post('logout', 'AuthController@logout');
     });
 });
+

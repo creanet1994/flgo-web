@@ -10,17 +10,17 @@ import Index from './Index';
 import auth from './auth';
 import router from './router';
 import ElementUI from 'element-ui';
-//import 'element-ui/lib/theme-chalk/index.css';
 import Vuex from 'vuex'
 import {store} from './stores/store.js';
 import i18n from 'vue-i18n';
-
-import VueMaterial from 'vue-material'
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
+import VueMaterial from 'vue-material';
 
 
 Vue.use(Vuex);
-
-Vue.material.locale.dateFormat = 'dd/MM/yyyy';
+Vue.use(Loading);
+Vue.material.locale.dateFormat = 'yyyy-MM-dd';
 
 Vue.material.locale.days = ['Domingo','Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 Vue.material.locale.shortDays = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];

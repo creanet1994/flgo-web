@@ -12,7 +12,7 @@
           </button>
         </router-link>
 
-        <router-link to="/registrar" style="height: 140px;" class="d-flex justify-content-center align-items-center col-12  col-md-3 m-2 button3">
+        <router-link to="/verRegistro" style="height: 140px;" class="d-flex justify-content-center align-items-center col-12  col-md-3 m-2 button3">
           <button class="text-button">
             <book-search-icon/>
             <b>VER REGISTROS</b>

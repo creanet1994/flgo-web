@@ -15,7 +15,7 @@ class CreateHighMedicalTable extends Migration
     {
         Schema::create('high_medical', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('fecha_alta_flgo');
+            $table->dateTime('fecha_alta_flgo');
             $table->string('via_enteral');
             $table->string('derivacion');
             $table->timestamps();

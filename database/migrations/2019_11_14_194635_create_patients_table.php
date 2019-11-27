@@ -16,12 +16,14 @@ class CreatePatientsTable extends Migration
         Schema::create('patients', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->string('rut')->unique();
-            $table->string('sexo')->nullable();
+            $table->string('rut');
             $table->integer('age')->nullable();
+            $table->string('grupo_sangre')->nullable();
+            $table->string('sexo')->nullable();
             $table->string('procedencia')->nullable();
             $table->string('tqt')->nullable();
             $table->string('dgcoIngreso')->nullable();
+            $table->dateTime('fechaIngreso')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
