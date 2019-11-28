@@ -420,7 +420,7 @@
 			  	</div>
 			</div>	
 		</div>
-
+		<el-footer>Pie de página</el-footer>
 	</div>
 
 </template>
@@ -433,7 +433,7 @@
 	import 'vue-material/dist/vue-material.min.css'
 	import 'vue-material/dist/theme/default.css'
 	import { mapActions, mapState, mapMutations } from 'vuex';
-    import parse from 'date-fns/parse';
+    import parse from 'date-fns/parse'; 
 	import format from 'date-fns/format';
 	import isValid from 'date-fns/isValid';
 
@@ -870,7 +870,7 @@
 // ************************* Buscar info de rut **************************************
 			
 			buscarInfoRut(rut){
-                let loader = this.$loading.show({
+                let loader = Vue.$loading.show({
                     // Optional parameters
                     container: this.$refs.formContainer,
                     canCancel: true,
@@ -1047,7 +1047,7 @@
 
 				if (!error){
 
-                    let loader = this.$loading.show({
+                    let loader = Vue.$loading.show({
                         // Optional parameters
                         container: this.$refs.formContainer,
                         canCancel: true,

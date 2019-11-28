@@ -37,10 +37,10 @@
           </button>
         </router-link>
 
-        <router-link to="/registrar" style="height: 140px;" class="d-flex justify-content-center align-items-center col-12  col-md-3 m-2 button4">
+        <router-link to="/datos" style="height: 140px;" class="d-flex justify-content-center align-items-center col-12  col-md-3 m-2 button4">
           <button class="text-button">
             <clipboard-arrow-down-icon/>
-            <b>DESCARGAR</b>
+            <b>DATOS</b>
           </button>
         </router-link>
 

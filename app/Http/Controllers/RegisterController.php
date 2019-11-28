@@ -10,9 +10,43 @@ use App\Register;
 use App\Flgo_evolution;
 use App\Expenses;
 use App\High_medical;
+use stdClass;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\RegisterImport;
 
 class RegisterController extends Controller
 {
+    public function index()
+    {
+
+        $registroJSON = [];
+        $registros = new stdClass;
+        $registros = Register::all();
+
+        foreach($registros as $registro){
+
+            $object = new stdClass;
+
+            $datoPaciente = Patient::where('id',$registro->patient_id)->first();
+            $antecedentesVisita = Antecedents::where('register_id',$registro->id)->get();
+            $evolucionVisita = Flgo_evolution::where('id',$registro->evolutions_id)->first();
+            $egresoVisita = Expenses::where('register_id',$registro->id)->get();
+            $highMedical = High_medical::where('register_id',$registro->id)->get();
+
+            $object->registroVisita = $registro;
+            $object->datoPaciente = $datoPaciente;
+            $object->antecedentesVisita = $antecedentesVisita;
+            $object->evolucionVisita = $evolucionVisita;
+            $object->egresoVisita = $egresoVisita;
+            $object->highMedical = $highMedical;
+
+            $registroJSON[] = $object;
+        }
+
+        return response()->json($registroJSON);           
+    }
+
 
     public function infoRut(Request $request){
 
@@ -427,5 +461,19 @@ class RegisterController extends Controller
                 'message' => 'El paciente se guardó correctamente'
             ]);
         }
+    }
+
+    public function importarDatos(Request $request){
+
+        //Excel::import(new PersonasImport, $request->file('file'));
+
+        $collection = Excel::toCollection(new RegisterImport, $request->file('file'));
+
+         $datos= $collection[0];
+
+        return response()->json([
+            'validacion' => true,
+            'message' => $datos[6]
+        ]);
     }
 }

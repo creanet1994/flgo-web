@@ -7,7 +7,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/user/Dashboard';
 import Registro from './pages/user/Registrar';
-import AdminDashboard from './pages/admin/Dashboard';
+import Datos from './pages/user/Datos';
+import Index from './pages/user/registros/Index';
 
 // Routes
 const routes = [
@@ -56,6 +57,22 @@ const routes = [
     path: '/registrar',
     name: 'registrar',
     component: Registro,
+    meta: {
+      auth: true
+    }
+  },
+  { 
+    path: '/verRegistro',
+    name: 'verRegistro',
+    component: Index,
+    meta: {
+      auth: true
+    }
+  },
+  { 
+    path: '/datos',
+    name: 'datos',
+    component: Datos,
     meta: {
       auth: true
     }

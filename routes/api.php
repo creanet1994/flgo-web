@@ -29,6 +29,10 @@ Route::prefix('auth')->group(function () {
         Route::get('user', 'AuthController@user');
         // Agregar registro
         Route::post('registro/create', 'RegisterController@store');
+        // Obtener registro
+        Route::get('registro/index', 'RegisterController@index');
+        // Agregar registro
+        Route::post('registro/importar', 'RegisterController@importarDatos');
         // Agregar registro
         Route::get('registro/inforut', 'RegisterController@infoRut');
         // Logout user from application
