@@ -374,6 +374,11 @@ class RegisterController extends Controller
 
 
             /* Registro de paciente */
+
+
+
+
+
             $patients = new Patient;
             $patients->name = $nombre;
             $patients->rut = $rut;
@@ -463,17 +468,140 @@ class RegisterController extends Controller
         }
     }
 
+    function rut( $rut ) {
+        return number_format( substr ( $rut, 0 , -1 ) , 0, "", ".") . '-' . substr ( $rut, strlen($rut) -1 , 1 );
+    }
+
     public function importarDatos(Request $request){
 
         //Excel::import(new PersonasImport, $request->file('file'));
 
         $collection = Excel::toCollection(new RegisterImport, $request->file('file'));
 
-         $datos= $collection[0];
+        $contadorAntecedente = [13,16,19,22];
+        $contadorEgreso = [34,37,40,43];
 
+
+        $dfi=[13,16,19,22];
+        $si=[14,17,20,23];
+        $ei=[15,18,21,24];
+
+        $dfe=[34,37,40,43];
+        $se=[35,38,41,44];
+        $ee=[36,39,42,45];
+
+        foreach($collection[0] as $dato){
+
+            if($dato[0]>=1){
+
+                //$rut = (integer)($dato[2].'-'.$dato[3]);
+                $rut = number_format( (integer)$dato[3], 0, "", ".") . '-' . $dato[4];
+                //$rut = number_format( substr ( $rut, 0 , -1 ) , 0, "", ".") . '-' . substr ( $rut, strlen($rut) -1 , 1 );
+
+                $patient = Patient::where('rut', $rut)->first();
+
+                $newDate = date("Y/m/d", strtotime($dato[9]));
+
+                if (isset($patient)) {
+
+                    $idPatients = $patient->id;
+
+                }else{
+
+                    $patients = new Patient;
+                    $patients->name = $dato[5];
+                    $patients->rut = $rut;
+                    $patients->age = (integer)$dato[6];
+                    $patients->grupo_sangre = $dato[8];
+                    $patients->sexo = $dato[7];
+                    $patients->procedencia = $dato[10];
+                    $patients->tqt = $dato[12];
+                    $patients->dgcoIngreso = $dato[11];
+                    $patients->fechaIngreso = $newDate;
+                    $patients->save();
+
+                    $idPatients = $patients->id;
+                }
+
+                /* Registro de evolución */
+                $evolutions = new Flgo_evolution;
+                if (isset($dato[30])){$evolutions->manejo_flgo1 = $dato[31];}
+                if (isset($dato[31])){$evolutions->manejo_flgo2 = $dato[32];}
+                if (isset($dato[32])){$evolutions->manejo_flgo3 = $dato[33];}
+                if (isset($dato[24])){$evolutions->procedimiento1 = $dato[25];}
+                if (isset($dato[25])){$evolutions->procedimiento2 = $dato[26];}
+                if (isset($dato[26])){$evolutions->procedimiento3 = $dato[27];}
+                $evolutions->via_enteral = $dato[28];
+                $evolutions->vfc = $dato[29];
+                $evolutions->cfv = $dato[30];
+                $evolutions->save();
+
+                $idEvolutions = $evolutions->id;
+
+                $newDate = date("Y/m/d", strtotime($dato[1]));
+
+                $newRegister = new Register;
+                $newRegister->profesional = $dato[2];
+                $newRegister->evolutions_id = $idEvolutions;
+                $newRegister->patient_id = $idPatients;
+                $newRegister->fecha_registro = $newDate;
+                $newRegister->save();
+
+                $idNewRegister = $newRegister->id;
+
+                for ($i=0; $i < 4; $i++) {
+                    if ((strlen($dato[$dfi[$i]])>0)||($dato[$si[$i]]>0)||(strlen($dato[$ei[$i]])>0)) {
+                        $newAntecedent = new Antecedents;
+                        $newAntecedent->dgflgoing = $dato[$dfi[$i]];
+                        if ($dato[$si[$i]]==0) {
+                            $dato[$si[$i]]=null;
+                        }
+                        $newAntecedent->severidad = $dato[$si[$i]];
+                        $newAntecedent->escala = $dato[$ei[$i]];
+                        $newAntecedent->register_id = $idNewRegister;
+                        $newAntecedent->save();
+                    }
+                }
+
+                for ($i=0; $i < 4; $i++) {
+                    if ((strlen($dato[$dfe[$i]])>0)||($dato[$se[$i]]>0)||(strlen($dato[$ee[$i]])>0)) {
+                        $newExpenses = new Expenses;
+                        $newExpenses->dgflgoeg = $dato[$dfe[$i]];
+
+                        if ($dato[$se[$i]]==0) {
+                            $dato[$se[$i]]=null;
+                        }
+                        $newExpenses->severidad =$dato[$se[$i]];
+                        $newExpenses->escala = $dato[$ee[$i]];
+                        $newExpenses->register_id = $idNewRegister;
+                        $newExpenses->save();
+                    }
+                }
+
+                $fecha_actual = strtotime(date($dato[46],time()));
+
+                $fecha_entrada = strtotime("01-01-1970 00:00:00");
+
+                $newDate = date("Y-m-d", strtotime($dato[46]));
+                
+                if ($fecha_actual> $fecha_entrada) {
+                    
+                    $newHigh = new High_medical;
+                    $newHigh->fecha_alta_flgo = $newDate;
+                    $newHigh->via_enteral = $dato[47];
+                    $newHigh->derivacion = $dato[48];
+                    $newHigh->register_id = $idNewRegister;
+                    $newHigh->save();
+                }
+
+            }
+        }
+        
         return response()->json([
             'validacion' => true,
-            'message' => $datos[6]
+            'mensaje' => 'Los registros se han agregado correctamente'
         ]);
     }
 }
+
+

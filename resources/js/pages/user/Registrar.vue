@@ -973,11 +973,11 @@
 					this.inputNameActive = true;
 					this.msjErrorName = 'El ingreso del nombre es obligatorio';
 				}
-				if (!this.inputProcedencia) {
+				/*if (!this.inputProcedencia) {
 					error = true;
 					this.inputProcedenciaActive = true;
 					this.msjErrorProcedencia = 'El ingreso de procedencia es obligatorio';
-				}
+				}*/
 				if (!this.fechaIngreso) {
 					error = true;
 					this.fechaIngresoActive = true;
@@ -998,11 +998,11 @@
 					this.inputSexoActive = true;
 					this.msjErrorSexo = 'El ingreso del sexo es obligatorio';
 				}
-				if (!this.inputTqt) {
+				/*if (!this.inputTqt) {
 					error = true;
 					this.inputTqtActive = true;
 					this.msjErrorTqt = 'El ingreso de tqt es obligatorio';
-				}
+				}*/
 				if (!this.inputDI) {
 					error = true;
 					this.inputDIActive = true;
